@@ -1,22 +1,35 @@
+# ------------------------------------------------------------------------------
+# File Name: parser.py
+# Project: SSH Config Auditor
+# Author: _01x.arec1b0(dkrizhanovskyi)
+# License: MIT
+# Last Updated: 2024-12-25
+# Description:
+#   Utility functions for parsing and validating sshd_config lines.
+# ------------------------------------------------------------------------------
+
 """
-parser.py - Utility functions to parse and validate SSH configuration or other related data.
-Part of the auditor.utils package.
+parser.py
+
+Provides a set of utility functions to parse sshd_config content into a usable
+dictionary, as well as other helpers for validating or normalizing settings.
 """
 
 import re
 
+def parse_sshd_config(config_data: str) -> dict[str, str]:
+    """
+    Converts raw sshd_config text into a dictionary of key-value pairs.
 
-def parse_sshd_config(config_data: str) -> dict:
+    Args:
+        config_data (str): The raw contents of sshd_config.
+
+    Returns:
+        dict[str, str]: A dictionary of directives (keys) to their values.
     """
-    Parse the sshd_config data and return a dictionary of relevant settings.
-    
-    :param config_data: Raw string of the sshd_config file contents
-    :return: A dictionary mapping settings (keys) to their values
-    """
-    # Regex example for capturing key/value lines like 'Key Value'
-    pattern = r'^\s*([A-Za-z0-9]+)\s+(.*)$'
+    pattern = r"^\s*([A-Za-z0-9]+)\s+(.*)$"
     config_dict = {}
-    for line in config_data.split('\n'):
+    for line in config_data.split("\n"):
         match = re.search(pattern, line)
         if match:
             key = match.group(1).strip()
@@ -27,10 +40,13 @@ def parse_sshd_config(config_data: str) -> dict:
 
 def validate_ssh_port(port: str) -> bool:
     """
-    Validate that the SSH port is within the valid TCP port range (1-65535).
-    
-    :param port: Port value extracted from config_data
-    :return: True if valid, False otherwise
+    Checks if the given port string is a valid TCP port (1-65535).
+
+    Args:
+        port (str): The port value to validate.
+
+    Returns:
+        bool: True if valid, False otherwise.
     """
     try:
         port_num = int(port)
@@ -39,49 +55,26 @@ def validate_ssh_port(port: str) -> bool:
         return False
 
 
-def extract_config_value(config_dict: dict, key: str, default=None):
-    """
-    Safely retrieve a configuration value from a dictionary, returning a default if not found.
-    
-    :param config_dict: Dictionary of config key/value pairs
-    :param key: The config key to retrieve
-    :param default: Default value to return if key is not found
-    :return: The requested value or the default
-    """
-    return config_dict.get(key, default)
-
-
 def normalize_boolean_setting(value: str) -> bool | None:
     """
-    Convert SSH config boolean values (yes/no/on/off) to Python booleans (True/False).
-    
-    :param value: String value representing a boolean in sshd_config
-    :return: True/False, or None if unknown
+    Converts 'yes'/ 'no' / 'on' / 'off' strings to Python booleans.
+
+    Args:
+        value (str): e.g., 'yes', 'no', 'on', 'off'.
+
+    Returns:
+        bool | None: True if 'yes'/'on', False if 'no'/'off', None if unrecognized.
     """
-    if isinstance(value, str):
-        val_lower = value.strip().lower()
-        if val_lower in ["yes", "on"]:
-            return True
-        elif val_lower in ["no", "off"]:
-            return False
+    val_lower = value.strip().lower()
+    if val_lower in ["yes", "on"]:
+        return True
+    elif val_lower in ["no", "off"]:
+        return False
     return None
 
-
-if __name__ == "__main__":
-    # Example usage:
-    sample_config = """
-    Port 22
-    PasswordAuthentication yes
-    PermitRootLogin no
-    X11Forwarding yes
-    """
-
-    parsed = parse_sshd_config(sample_config)
-    print("Parsed Config Dict:", parsed)
-
-    port_valid = validate_ssh_port(parsed.get("Port", "22"))
-    print(f"Is Port Valid? {port_valid}")
-
-    root_login = normalize_boolean_setting(parsed.get("PermitRootLogin", "yes"))
-    print(f"PermitRootLogin Setting: {root_login}")
+# ------------------------------------------------------------------------------
+# Footer Notes:
+# - These helpers serve as building blocks for advanced SSH config validations.
+# - MIT License applies.
+# ------------------------------------------------------------------------------
 
